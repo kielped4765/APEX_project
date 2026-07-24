@@ -1,0 +1,22 @@
+{
+    "system": {
+        "name": "APEX", 
+        "version": "1.0.0",
+        "description": "A physics engine for simulating rigid body dynamics.",
+        "debug_mode": true
+    },
+    "engine": {
+        "tick_rate": 50,
+        "max_iterations": 1000,
+        "telemetry_channel": "primary"
+    },
+    "broker": {
+        "bind_address": "127.0.0.1",
+        "port": 9000,
+        "max_connections": 10,
+        "encryption_enabled": true,
+        "encryption_algorithm": "AES-256",
+        "timeout_ms": 3000
+
+    }
+}
