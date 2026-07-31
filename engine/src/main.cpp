@@ -1,46 +1,42 @@
 #include <iostream>
-#include <thread> 
 #include <chrono>
-#include <cstring>
-#include "engine/include/frame.hpp"
+#include <thread>
+#include "aircraft.hpp"
+#include "dynamics.hpp"
+#include "ring_buffer.hpp"
 
-int main() {
-    
-    std::cout << "[APEX engine] Starting simulation...";
+int main() {                                                            // Calls our shared memory creation function to set up physical RAM ring buffer
+    SharedRingBuffer* ring = create_shared_ring("apex_ring_buffer");
+    std::cout << "[ENGINE] Shared memory ready. 50 Hz loop starting.\n";
 
-    uint32_t sequence_id = 0;                                               // Keeping track starting
-    // at 0 of how many frames have been generated
-    const int tick_rate_hz = 50;                                            // Keeping target
-    // simulation frequency at 50 Hz
-    const auto interval = std::chrono::milliseconds(1000 / tick_rate_hz);   // Calculating
-    // how long program needs to wait between loops
+    AircraftState state{};              // zero-initalizes all variables
+    state.altitude_m    = 3000.0;       
+    state.airspeed_mps  = 120.0;
+    state.thrust_n      = 30000.0;
+    state.fuel_mass_kg  = 2000.0;
+    state.g_load        = 1.0;
+    state.sequence_num  = 0;
+    state.sim_time_s    = 0.0;
 
-    for (int i = 0; i < 100; ++i) {     // Looping 100 times to generate 100 telemetry frames
-        apex::TelemetryFrame frame;
+    FlightControls controls{};          // creates a default controls object and sets throttle to 50%
+    controls.throttle = 0.5;
 
-        frame.sequence_id = ++sequence;
+    FlightDynamics dynamics(0.02);      // instantiates our physical engine passing 0.02 seconds as the time step
 
-        frame.timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(     // Converts to milliseconds
-            std::chrono::system_clock::now().time_since_epoch()
-        ).count();
+    using namespace std::chrono;        // bringing in the namespace into scope to write cleaner time-related code
+    auto next_tick = steady_clock::now();   // captures current high-resolution monotonic clock time for baseline for loop timing
+    const auto TICK = milliseconds(20);
 
-        frame.vehicle_speed = 120.5f + (i * 0.1f);
-        frame.engine_temperature = 90.0f;                   // setting values for each variable
-        frame.fuel_load_kg = 50.0f - (i * 0.05f);
-        frame.vertical_energy = 1.2f;
+    while (true) {                          // defines a constant duration of 20 milliseconds, which represents one tick of a 50 Hz frequency
+        state = dynamics.step(state, controls); // Runs the Rk4 physics equations for the current frame
+        ring_push(*ring, state);                // Pushes newly calculated AircraftState into our lock-free shared memory
 
-        std::strncpy(frame.car_id, "APEX-01", sizeof(frame.car_id));    // setting setting the car identifier into fixed-size
+        if (state.sequence_num % 50 == 0)       // Check if current sequence number is a multiple of 50 
+            std::printf("[ENGINE] t=%.1fs seq=%lu alt=%.0fm spd=%.1fm/s\n", // Prints a formatted status log to the console
+                state.sim_time_s, state.sequence_num,
+                state.altitude_m, state.airspeed_mps);
 
-        std::cout << "Seq: " << frame.sequence_id                   // outputting the frame metrics for visual verification
-                  << " | Speed: " << frame.vehicle_speed << "km/h"
-                  << " | Fuel: " << frame.fuel_load_kg << "kg"
-                  << " | Size: " << sizeof(frame) << " bytes\n";
-
-        std::this_thread::sleep_for(interval);    // Pausing the loop for the calculated interval
-
+        next_tick += TICK;                      // Advances our target time marker by exactly 20 milliseconds for next loop iteration
+        std::this_thread::sleep_until(next_tick);
     }
-
-    std::cout << "[APEX engine] Simulation completed.\n";
-
-    return 0;
 }

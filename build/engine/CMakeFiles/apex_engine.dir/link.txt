@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/apex_engine.dir/src/main.cpp.o CMakeFiles/apex_engine.dir/src/dynamics.cpp.o -o ../bin/apex_engine 
