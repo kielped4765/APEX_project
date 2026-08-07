@@ -21,4 +21,5 @@ private:                                                        // Private membe
         void inject_replay(TelemetryFrame& f);                  // Method to inject a replay attack into a telemetry frame by replacing its payload with that of the last valid frame
         void inject_corrupt(TelemetryFrame& f);                 // Method to inject a corrupt attack into a telemetry frame by randomly altering its payload data
         void inject_drift(TelemetryFrame& f);                   // Method to inject a drift attack into a telemetry frame by gradually modifying its payload data over time
+        
 };
