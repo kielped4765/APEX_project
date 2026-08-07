@@ -8,7 +8,7 @@ AttackInjector::AttackInjector(double rate)
 
 AttackType AttackInjector::maybe_inject(TelemetryFrame& f,
                                         const TelemetryFrame& prev) {
-    if (roll_(ring_) >= rate_) { last_valid_=f; has_prev_=true; return AttackType::NONE; }  // If the random roll is greater than or equal to the attack rate, store the current frame as the last valid frame and return NONE (no attack injected)
+    if (roll_(rng_) >= rate_) { last_valid_=f; has_prev_=true; return AttackType::NONE; }  // If the random roll is greater than or equal to the attack rate, store the current frame as the last valid frame and return NONE (no attack injected)
     switch (type_(rng_)) {
         case 0: inject_spoof(f);    return AttackType::SPOOF;       // If the random type is 0, inject a spoof attack into the frame and return SPOOF
         case 1: inject_replay(f);   return AttackType::REPLAY;      // If the random type is 1, inject a replay attack into the frame and return REPLAY
@@ -37,7 +37,7 @@ void AttackInjector::inject_replay(TelemetryFrame& f) {    // Method to inject a
 }
 
 // Corrupt: if one bit flips - HMAC will fail
-void AttackInjector::inject_drift(TelemetryFrame& f) {     // Method to inject a drift attack into a telemetry frame by gradually modifying its payload data over time
+void AttackInjector::inject_corrupt(TelemetryFrame& f) {     // Method to inject a drift attack into a telemetry frame by gradually modifying its payload data over time
     size_t i = rng_() % PAYLOAD_SIZE;
     f.payload[i] ^= (uint8_t)(1u << (rng_() % 8));         // Randomly select a byte in the payload and flip a random bit within that byte to simulate a drift attack
     f.attack_label = AttackType::CORRUPT;                  // Set the attack label of the telemetry frame to CORRUPT

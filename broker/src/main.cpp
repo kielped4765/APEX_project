@@ -1,5 +1,6 @@
 #include "aircraft.hpp"
 #include "crypto.hpp"
+#include "ring_buffer.hpp"
 #include "attacker.hpp"
 #include "frame.hpp"
 #include <iostream>
@@ -18,7 +19,7 @@ int connect_to_monitor(const char* path) {
         sleep(1); // Sleep for 1 second before retrying the connection
     }
     return fd; // Return the file descriptor for the connected socket
-
+}
 
 int main() {
     SharedRingBuffer* ring = open_shared_ring("apex_ring_buffer"); // Open the shared ring buffer for communication with the telemetry source
@@ -39,7 +40,7 @@ int main() {
             std::chrono::system_clock::now().time_since_epoch()).count();               
 
         auto ct = crypto.encrypt(                                                       // Encrypts the raw aircraft state payload and generates a fresh random IV
-            reinterpret_cast<const uint8_t*>(&state), sizeof(state), frameiv);         
+            reinterpret_cast<const uint8_t*>(&state), sizeof(state), frame.iv);         
         memcpy(frame.payload, ct.data(),                                                // Copies the resulting ciphertext into the frame's payload buffer
                std::min(ct.size(), sizeof(frame.payload)));                             
 

@@ -1,7 +1,7 @@
 #include "crypto.hpp"
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
-#include <opensl/rand.h>
+#include <openssl/rand.h>
 #include <openssl/crypto.h>
 #include <fstream>
 #include <stdexcept>
@@ -17,7 +17,7 @@ std::vector<uint8_t> TelemetryCrypto::load_key_file(                            
     f.read(reinterpret_cast<char*>(key.data()), expected);                      // read the key data from the file into the vector
     if ((size_t)f.gcount() != expected)                                         // check if the number of bytes read matches the expected size
         throw std::runtime_error("Key wrong size: " + path);                    // throw an exception if the key size is incorrect
-        return key                                                              // return the loaded key data as a vector of bytes
+        return key;                                                              // return the loaded key data as a vector of bytes
     }
 
     std::vector<uint8_t> TelemetryCrypto::encrypt(                              // method to encrypt plaintext data using AES encryption
@@ -35,10 +35,10 @@ std::vector<uint8_t> TelemetryCrypto::load_key_file(                            
         return out;                                                             // return the encrypted data as a vector of bytes
     }
 
-    std::vector<uint8_t> TelemetryCryptoL::decrypt(                             // method to decrypt ciphertext data using AES decryption
+    std::vector<uint8_t> TelemetryCrypto::decrypt(                             // method to decrypt ciphertext data using AES decryption
             const uint8_t* ct, size_t len, const uint8_t iv[IV_SIZE]) {         // uses the provided IV for decryption
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();                             // create a new decryption context for AES decryption
-        EVP_Decryptinit_ex(ctx, EVP_aes_256_cbc(), nullptr, aes_key_.data(), iv); // initialize the decryption context with AES-256-CBC mode, setting the AES key and IV for decryption
+        EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), nullptr, aes_key_.data(), iv); // initialize the decryption context with AES-256-CBC mode, setting the AES key and IV for decryption
         std::vector<uint8_t> out(len);                                          // create a vector to hold the decrypted output, with enough space for the ciphertext length
         int out_len=0, final_len=0;                                             // initialize variables to hold the lengths of the decrypted data and final block
         EVP_DecryptUpdate(ctx, out.data(), &out_len, ct, (int)len);             // perform the decryption operation on the ciphertext data and store the result in out

@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <cstdint>          // includes standard fixed-width interger types (like uint32/64/8 etc.)
 
 constexpr uint32_t FRAME_MAGIC  = 0xAE1A1337;   // Defining a magic number used as a unique identifer for verification

@@ -9,7 +9,10 @@ add_executable(apex_broker
 )
 
 # telling the compiler where to find local header files
-target_include_directories(apex_broker PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(apex_broker PRIVATE 
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../engine/include
+)
 
 # linking OpenSSL libraries to this target
 target_link_libraries(apex_broker PRIVATE OpenSSL::SSL OpenSSL::Crypto)
