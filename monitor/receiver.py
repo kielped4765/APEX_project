@@ -22,8 +22,8 @@ def parse_frame(data:bytes) -> 'RawFrame|None':         # Function that takes ra
  
 def listen_unix(socket_path:str):                       # Generator function that sets up a UNIX domain socket server to listen for incoming telemetry
     """Generator: yields exactly FRAME_SIZE bytes per frame."""
-    if os.path.exists(socket_path): os.remove(socket_path)
-    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as srv:
+    if os.path.exists(socket_path): os.remove(socket_path)      # Removes any leftover socket server 
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as srv:  # Creates a stream-oriented UNIX domain socket
         srv.bind(socket_path)
         srv.listen(1)
         print(f'[RECEIVER] Listening on {socket_path}')
