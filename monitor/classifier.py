@@ -1,5 +1,5 @@
 import joblib, numpy as np      # imports joblib (library) for saving/loading large python objects & numpy for numerical matrix operations
-from verifier import ThreatClass    # Imports a custom class or enum from another file within the project
+from .verifier import ThreatClass    # Imports a custom class or enum from another file within the project
 import config                       # Imports from another local file config.py 
 
 FEATURES = [        # Defining the list of string names that the model expects. Serves as an internal documentation

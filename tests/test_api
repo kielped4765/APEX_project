@@ -1,0 +1,82 @@
+"""
+APEX Backend Test Suite
+Description: Automated tests for FastAPI endpoints using pytest and TestClient. 
+Covers health checks, real-time flight telemetry, cyber-attack injection, and ML threats
+"""
+
+from fastapi.testclient import TestClient
+import pytest
+from apex_backend.main import app
+
+# Initialize the TestClient to simulate HTTP requests against the FastAPI app
+client = TestClient(app)
+
+def test_read_root():
+    """
+    Test the root endpoints.
+    Verifies that the server is online and returns appropriate platform metadata.
+    """
+    response = client.get("/")
+    assert response.status_code == 200
+    data = response.json()
+    assert "status" in data
+    assert data["status"] == "online"
+    assert "platform" in data
+
+def test_get_telemetry():
+    """
+    Test the telemetry retrieval endpoint (/api/v1/telemetry).
+    Ensures the response contains crucial flight dynamic parameters and timestamps.
+    """
+    response = client.get("/api/v1/telemetry")
+    assert response.status_code == 200
+    telemetry = response.json()
+
+    # List of mandatory flight dynamics fields required by the GCS dashboard.
+    expected_fields = ["altitude", "airspeed", "pitch", "roll", "yaw", "timestamp"]
+    for field in expected_fields:
+        assert field in telemetry, f"Missing required telemetry field: {field}"
+
+def test_attack_injection():
+    """
+    Test the cyberattack injection endpoint (/api/v1/attack/inject) with a valid payload.
+    Simulates injecting an attack vector and expects a successful tracking ID back.
+    
+    """
+    payload = {
+        "attack_type": "GPS_SPOOFING",
+        "vector": "navigation_bus",
+        "intensity": 0.75
+    }
+    response = client.post("/api/v1/attack/inject", json=payload)
+    assert response.status_code == 200
+    result = response.json()
+    assert result["status"] == "success"
+    assert "injection_id" in result
+
+def test_attack_injection_invalid_type():
+    """
+    Test error handling for the attack injection endpoint with a malformed/invalid payload.
+    Ensures the API properly rejects unsupported attack types with an HTTP 400.
+    """
+    payload = {
+        "attack_type": "UNKNOWN_ATTACK",
+        "vector": "navigation_bus",
+        "intensity": 0.5
+    }
+    response = client.post("/api/v1/attack/inject", json=payload)
+    assert response.status_code == 400  # Expect Bad Request
+    assert "detail" in response.json()
+
+def test_ml_threat_status():
+    """
+    Test the ML threat classifier endpoint (/api/v1/threats/status).
+    Validates that the intrusion detection engine returns a boolean status and confidence score.
+    """
+    response = client.get("/api/v1/threats/status")
+    assert response.status_code == 200
+    data = response.json()
+    assert "threat_detected" in data
+    assert isinstance(data["threat_detected"], bool)
+    assert "confidence_score" in data
+    assert 0.0 <= data["confidence_score"] <= 1.0  # Ensure confidence is a valid percentage range

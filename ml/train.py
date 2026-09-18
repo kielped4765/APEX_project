@@ -3,6 +3,7 @@ from sklearn.ensemble import RandomForestClassifier     # imports the Random For
 from sklearn.model_selection import train_test_split, cross_val_score   # imports tools to split the data for training/testing and perform cross-validation.
 from sklearn.metrics import classification_report       # imports metrics reporting tools to evaluate precision
 from sklearn.preprocessing import StandardScaler        # imports the standard scaler to normalize feature values to zero mean
+from sklearn.model_selection import train_test_split
 import joblib
 
 FEATURES = ['altitude_m','airspeed_mps','vertical_speed','pitch_rad','roll_rad',
@@ -17,7 +18,7 @@ scaler = StandardScaler()   # initalizes the feature scaling utility
 x = scaler.fit_transform(df[FEATURES].values)   # extracts the target ground-truth labels array.
 y = df['label'].values
 
-Xtr,Xte,ytr,yte = train_test_split(X,y,test_size=0.2,random_state=42,stratify=y)    # splits the dataset into an 80% training set and a 20% testing set while preserving the class distribution
+Xtr,Xte,ytr,yte = train_test_split(x,y,test_size=0.2,random_state=42,stratify=y)    # splits the dataset into an 80% training set and a 20% testing set while preserving the class distribution
 
 clf = RandomForestClassifier(
     n_estimators=300, max_depth=12, min_samples_leaf=2,
@@ -26,7 +27,7 @@ clf = RandomForestClassifier(
 clf.fit(Xtr, ytr)   # trains the Random Forest model using the training feature subset and labels.
 
 print(classification_report(yte, clf.predict(Xte), target_names=CLASSES))   # outputs a detailed precision, recall, and F1-score evaluation report
-cv = cross_val_score(clf, X, y, cv=5, scoring='f1_macro')       # performs a 5-fold cross validation using the macro F1 scoring metric
+cv = cross_val_score(clf, x, y, cv=5, scoring='f1_macro')       # performs a 5-fold cross validation using the macro F1 scoring metric
 print(f'5-fold CV F1: {cv.mean():.3f} +/- {cv.std():.3f}')      # prints the mean and standard deviation of the cross validation F1 scores.
 
 joblib.dump(clf,    'ml/classifier.pkl')    # serializes and saves the trained types of functions to specific file locations.

@@ -15,9 +15,26 @@ class RawFrame:                                         # Defines a data contain
     sequence_num:int; timestamp_us:int                  # Fields storing the packet sequence number and the microsecond-precision timestamp
     iv:bytes; payload:bytes; hmac:bytes                 # Fields storing the AES initialization vector, encrypted payload, and HMAC bytes
 
-def parse_frame(data:bytes) -> 'RawFrame|None':         # Function that takes raw bytes and parses them into a RawFrame object, or returns None if invalid
-    if len(data) < FRAME_SIZE: return None              # Guard check ensuring the input data buffer is large enough to contain a complete frame
-    f = RawFrame(*struct.unpack(FRAME_FMT, data[:FRAME_SIZE])) # Unpacks the exact binary byte slice using the defined format string and passes it into the RawFrame initializer
+def parse_frame(data: bytes) -> 'RawFrame | None':
+    if len(data) < FRAME_SIZE: 
+        return None
+        
+    # Unpack the binary block
+    values = struct.unpack(FRAME_FMT, data[:FRAME_SIZE])
+    
+    # Map them explicitly to avoid positional mismatches
+    # Adjust the indices below based on the exact order of your FRAME_FMT specifiers
+    f = RawFrame(
+        magic=values[0],
+        frame_type=values[1],
+        attack_label=values[2],
+        sequence_num=values[3],
+        timestamp_us=values[4],
+        iv=values[5],
+        payload=values[6],
+        hmac=values[7] if len(values) > 7 else b'' # Fallback if hmac is parsed separately
+    )
+    
     return f if f.magic == FRAME_MAGIC else None
  
 def listen_unix(socket_path:str):                       # Generator function that sets up a UNIX domain socket server to listen for incoming telemetry
