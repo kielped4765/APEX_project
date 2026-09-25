@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()  # load .env file into environment variables
  
 BASE_DIR        = Path(__file__).parent
-DB_URL          = f"sqlite:///{BASE_DIR}/data/apex.db"
+DB_URL          = f"sqlite:///{BASE_DIR}/telemetry.db"
 SOCKET_PATH     = "/tmp/apex_telemetry.sock"
 SHARED_MEM_NAME = "apex_ring_buffer"
 MODEL_PATH      = BASE_DIR / "ml" / "classifier.pkl"

@@ -8,10 +8,13 @@ import numpy as np
 import time
 import requests
 import joblib
+from streamlit_autorefresh import st_autorefresh
 
 # Defines the page title and layout
 st.set_page_config(page_title="APEX Security Dashboard", layout="wide")
 st.title("APEX Flight Telemetry & Threat Dashboard")
+
+count = st_autorefresh(interval=1000, limit=None, key="telemetry_counter")
 
 # Caches the machine learning model loading function
 @st.cache_resource
@@ -86,6 +89,4 @@ if records:
 else:
     st.warning("Waiting for telemetry data from FastAPI backend...")
 
-# Auto-refresh loop for Streamlit
-time.sleep(1)
-st.rerun()
+# streamlit-autorefresh handles the trigger automatically based on interval=1000
