@@ -1,0 +1,70 @@
+# Specify the docker compose file format version
+version: '3.8' 
+
+# Define the set of containerized services that make up the application
+services:
+
+  # service 1: FastAPI Telemetry Backend
+  api:
+    # Build the image using Dockerfile in the current directory
+    build: .
+
+    # Custom container name displayed in Docker CLI
+    container_name: apex_api
+
+    # Command to start the FastAPI server listening on all network interfaces on port
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+    # mount local directory into container to enable real time code changes without rebuilding 
+    volumes:
+      - .:/app
+
+    # Map host port 8000 to container port 8000 for browser access (http://localhost:8000)
+    ports:
+      - "8000:8000"
+
+    # Define environment variables inside the container for database connection
+    environment:
+        - DATABASE_URL=sqlite:///./telenaeus.db
+
+    # --- SERVICE 2: Streamlit Visual Dashboard ---
+  dashboard:
+    # Build using the same Dockerfile as the API service
+    build: .
+    
+    # Custom container name displayed in Docker CLI
+    container_name: apex_dashboard
+    
+    # Command to run the Streamlit frontend app on port 8501
+    command: streamlit run dashboard/app.py --server.address=0.0.0.0 --server.port=8501
+    
+    # Mount local directory into container for live updates
+    volumes:
+      - .:/app
+      
+    # Map host port 8501 to container port 8501 (http://localhost:8501)
+    ports:
+      - "8501:8501"
+      
+    # Ensure the API service starts up before starting the dashboard
+    depends_on:
+      - api
+
+  # --- SERVICE 3: Telemetry Data Simulator Engine ---
+  simulator:
+    # Build using the same Dockerfile
+    build: .
+    
+    # Custom container name displayed in Docker CLI
+    container_name: apex_simulator
+    
+    # Command to run the telemetry data streaming simulation script
+    command: python sim_test_pure.py
+    
+    # Mount local directory so simulation outputs/database updates persist locally
+    volumes:
+      - .:/app
+      
+    # Ensure the API service starts up before feeding simulated telemetry data
+    depends_on:
+      - api
