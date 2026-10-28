@@ -27,6 +27,13 @@ services:
     environment:
         - DATABASE_URL=sqlite:///./telenaeus.db
 
+        healthcheck:
+          test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+          interval: 5s
+          timeout: 3s
+          retries: 3
+          start_period: 5s
+
     # --- SERVICE 2: Streamlit Visual Dashboard ---
   dashboard:
     # Build using the same Dockerfile as the API service
@@ -48,7 +55,8 @@ services:
       
     # Ensure the API service starts up before starting the dashboard
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
   # --- SERVICE 3: Telemetry Data Simulator Engine ---
   simulator:
@@ -67,4 +75,5 @@ services:
       
     # Ensure the API service starts up before feeding simulated telemetry data
     depends_on:
-      - api
+      api:
+        condition: service_healthy
